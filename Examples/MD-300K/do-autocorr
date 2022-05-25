@@ -1,0 +1,109 @@
+
+#
+#  calculate autocorrelation  function
+#
+#   We follow  Voth's approach:
+#  J. Chem. Phys., Vol. 116, pp. 737-746 (2002)
+#  
+#  < du/dt(0) |  du/dt(t) > , 
+#        where
+#   du/dt = SUM_iatoms { dQ/dt* R + q* dR/dt }   
+#         = SUM_iatoms { dQ/dt* R + q* Vel   }
+#
+#                             
+
+#---------------------------------------
+# basic example of  argv,arc usage in bash:
+args=("$@")
+#echo $# arguments passed
+#echo ${args[0]} ${args[1]} ${args[2]}
+#---------------------------------------
+
+Nargs=$#
+
+#if [ $# -ne "2" ] ; then 
+if [ $Nargs  -ne "2" ] ; then 
+  echo  " Check your arguments.  Should be 2 arguments: Number of atoms, file with au movie" 
+  echo  " Usage: " 
+  echo  "                 sh do-autocorr <Natoms>  <file name>  "
+  echo  " Example: "
+  echo  "                 sh do-autocorr  408       movie-au.xyz  "
+  echo  "                "
+  echo  " Number of arguments passed: "  $# 
+  echo  " Current arguments:"
+  echo   ${args[0]} ${args[1]} ${args[2]}
+  echo  "                "
+ exit
+fi
+
+#Nat=408 
+#file=movie-au.xyz
+
+Nat=${args[0]}
+file=${args[1]}
+echo "# Nat =" ${Nat}  
+echo "# myfile  =" ${file} 
+    
+
+
+
+
+#-------
+#  All values in "movie-au.xyz"   are in a.u.
+#
+# input (movie-au.xyz):
+#  columns:    1     2 3 4  5  6       7  8  9      10  11  11 
+#  columns:    Atom  x y z  Q  dQ/dt   vx vy vz     (another version vx vy vz) 
+#
+# output: 
+#    x*dQ   y*dQ    z*dQ      Q*vx    Q*vy    Q*vz   sum 
+#
+
+echo   "#      xdQ,               ydQ,                 zdQ,                 vxQ,                vyQ,                vzQ,                   SUM   "
+cat $file | awk -v Nat=$Nat  '{ iat+=1 ;   \
+             if ($1=="MD") {printf(" %18.10e  %18.10e  %18.10e  %18.10e  %18.10e  %18.10e    %18.10e \n",xdQ,ydQ,zdQ,vxQ,vyQ,vzQ,  xdQ+ydQ+zdQ+vxQ+vyQ+vzQ); iat=0; xdQ=0; ydQ=0; zdQ=0; vxQ=0; vyQ=0; vzQ=0 } ; \
+             if (iat >0 && iat <= Nat) {x=$2;y=$3;z=$4; Q=$5;dQ=$6; vx=$7;vy=$8;vz=$9; xdQ+=x*dQ; ydQ+=y*dQ; zdQ+=z*dQ; vxQ+=vx*Q; vyQ+=vy*Q; vzQ+=vz*Q}   \
+             if (iat==0 || iat >  Nat) printf(" ") }'  |tail -n  +2
+
+
+
+
+
+
+
+
+exit
+
+################################################################
+
+
+
+
+
+
+
+cat $file  |  awk -v Nat=$Nat  '{ iat+=1 ;   \
+                        if ($1=="MD") { iat=0; xdQ=0; ydQ=0; zdQ=0; vxQ=0; vyQ=0; vzQ=0 } ; \
+                        if (iat >0  && iat <= Nat) {x=$2;y=$3;z=$4; Q=$5;dQ=$6; vx=$7;vy=$8;vz=$9; xdQ+=x*dQ; ydQ+=y*dQ; zdQ+=z*dQ; vxQ+=vx*Q; vyQ+=vy*Q; vzQ+=vz*Q;   printf(" dQR+= %s :   %6d \n", $0,iat)}  
+                        if (iat ==0 || iat >  Nat) printf(" %s ::: %6d \n", $0,iat) }' 
+
+
+exit
+
+
+paste $file tmp | awk -v Nat=$Nat '{b2A=0.529177249; A2b=1/b2A; au2fs=0.0241888432650500; dt=0.5/au2fs; sc=1e-3*A2b*au2fs ;  iat +=1 ; \
+                             q=0.5*($5+$13); dq=($13-$5)/dt; x=0.5*($10+$2)*A2b ;  y=0.5*($11+$3)*A2b ;  z=0.5*($12+$4)*A2b ;  \
+                                                             vx=($10-$2)*A2b/dt ;  vy=($11-$3)*A2b/dt ;  vz=($12-$4)*A2b/dt ; \
+                                                            vx2=0.5*($6+$14)*sc ; vy2=0.5*($7+$15)*sc ; vz2=0.5*($8+$16)*sc ; \
+         if ($1=="MD") { iat=0;dupa=0} ; \
+         if (NF!=16)  printf(" %s  \n", $0 ) ; \
+         if (NF==16)  printf(" %6s  %16.10f  %16.10f  %16.10f   %16.10f  %17.10e   %16.12f  %16.12f  %16.12f     %16.12f  %16.12f  %16.12f  \n", $1,x,y,z, q,dq, vx2,vy2,vz2,  vx,vy,vz  )}'
+
+exit
+         if (NF==16)  printf(" %6s  %16.8f  %16.8f  %16.8f    %16.8f  %16.10e     %16.8f  %16.8f  %16.8f \n", $0,iat, NF )}'
+
+cat movie.xyz |  awk  '{sc=1/21876.9142121235; iat +=1 ; q=$5; vx=$6*;vy=$7;vz=$8; if ($1=="MD") { iat=0;dupa=0} printf(" %s : %d \n", $0,iat )}'
+
+ x,y,z, Q,dQ, Vx,Vy,Vz
+
+ xdQ,ydQ, zdQ,   qVx,qVy,qVz,  qVx2,qVy2,qVz2,   

@@ -1,0 +1,64 @@
+#
+ set terminal postscript color enhanced eps "Arial" 20
+ set  output "out-freqs_cm.eps"
+
+#set size square 
+
+
+eV2nm =  1239.84193
+Eh2eV =  27.2114
+cm2Eh =   4.556335e-06
+
+
+#set xr [200:800]
+
+#set xr [*:10000]
+#set xr [200:800]
+#set xr [100:800]
+#set xr [*:*]
+
+#set yr [0:*]
+
+set xtics 500
+set grid
+
+set xr [500:4000]
+
+#plot "w.dat"  u ($1/cm2Eh):($2*1/20)     not w lines  lt 2 lw 4 ,  \
+#     "w2.dat" u ($1/cm2Eh):($2*1)  not w lines  lt 1 lw 4 
+
+plot "w-dt0.5fs.dat"   u ($1/cm2Eh):($2*1/20)     not w lines  lt 2 lw 4 ,  \
+     "w2-dt0.5fs.dat"  u ($1/cm2Eh):($2*1)  not w lines  lt 1 lw 4 
+
+! pstopdf out-freqs_cm.eps
+
+#-------
+set output "out-freqs-dt-0.1fs_cm.eps"
+plot "w-dt0.1fs.dat"   u ($1/cm2Eh):($2*1/20)     not w lines  lt 2 lw 4 ,  \
+     "w2-dt0.1fs.dat"  u ($1/cm2Eh):($2*1)  not w lines  lt 1 lw 4 
+
+! pstopdf  out-freqs-dt-0.1fs_cm.eps 
+ 
+#--------
+set output "out-freqs-dt-0.1fs_cm.eps"
+plot "w-dt0.1fs.dat"   u ($1/cm2Eh):($2*1/20)     not w lines  lt 2 lw 4 ,  \
+     "w2-dt0.1fs.dat"  u ($1/cm2Eh):($2*1)  not w lines  lt 1 lw 4 
+
+! pstopdf  out-freqs-dt-0.1fs_cm.eps 
+ 
+
+#---------
+set output "out-freqs-NoseH-dt-0.1fs_cm.eps"
+plot "w-NoseH-dt0.1fs.dat"   u ($1/cm2Eh):($2*1/20000)     not w lines  lt 2 lw 4 ,  \
+     "w2-NoseH-dt0.1fs.dat"  u ($1/cm2Eh):($2*1/1000)  not w lines  lt 1 lw 4 
+
+! pstopdf  out-freqs-NoseH-dt-0.1fs_cm.eps 
+ 
+
+ 
+
+exit
+
+#############################################
+
+

@@ -1,0 +1,42 @@
+#
+#b2A=0.529177249; A2b=1/b2A; au2fs=0.0241888432650500; dt=0.5/au2fs; sc=1e-3*A2b*au2fs 
+#
+#   this script generates  derivative of dipole moment (=velocity* charge)  in atomic unics (bohr*electron)
+#   du/dt  = velocity* charge
+# "movie.xyz" has velcotiies in (Angstroom/ps)
+
+#filexyz=movie.xyz
+filexyz=$1
+
+dtfs=0.1
+tail -n +1  $filexyz  |   \
+                  awk -v dtfs=$dtfs   '{ b2A=0.529177249; A2b=1/b2A; au2fs=0.0241888432650500; dt=0.1/au2fs; sc=1e-3*A2b*au2fs ; \
+                                         qC=4;qO=6;qH=1; if ($1=="C") q0=qC;  if ($1=="O") q0=qO;  if ($1=="H") q0=qH; q=q0-$5 ; \
+                                         vx=$6; vy=$7; vz=$8; dux=q*vx*sc; duy=q*vy*sc;  duz=q*vz*sc;    \
+        if (NF==8) printf(" %s  %18.10e  %18.10e  %18.10e \n", $1, dux,duy,duz ) ;  if (NF!=8 &&  $1=="MD") printf("  %s\n", $0) }' 
+
+#
+############################################
+exit
+
+
+
+dtfs=0.1
+head  movie.xyz | awk '{if (NF==8) printf("%s\n",$0)}'  | \
+                  awk -v dtfs=$dtfs   '{ b2A=0.529177249; A2b=1/b2A; au2fs=0.0241888432650500; dt=0.1/au2fs; sc=1e-3*A2b*au2fs ; \
+                                         qC=4;qO=6;qH=1; if ($1=="C") q0=qC;  if ($1=="O") q0=qO;  if ($1=="H") q0=qH; q=q0-$5 ; \
+                                         vx=$6; vy=$7; vz=$8; dux=q*vx*sc; duy=q*vy*sc;  duz=q*vz*sc;  printf(" %s  %18.10e  %18.10e  %18.10e \n", $1, dux,duy,duz ) }' 
+
+#
+exit
+
+
+dtfs=0.1
+head  movie.xyz | awk '{if (NF==8) printf("%s\n",$0)}'  | \
+                  awk -v dtfs=$dtfs   '{ b2A=0.529177249; A2b=1/b2A; au2fs=0.0241888432650500; dt=0.1/au2fs; sc=1e-3*A2b*au2fs ; \
+                                         qC=4;qO=6;qH=1; if ($1=="C") q0=qC;  if ($1=="O") q0=qO;  if ($1=="H") q0=qH; q=q0-$5 ; \
+                                         vx=$6; vy=$7; vz=$8;  printf(" %s %12.6f   %12.6f %18.10e  %18.10e  %18.10e \n", $1, q, $5,vx*sc,vy*sc,vz*sc ) }' 
+
+
+#head  movie.xyz | awk '{if (NF==8) printf("%s\n",$0)}'  | awk '{qC=4;qO=6;qH=1; if ($1=="C") ; printf("C: %s\n",$0)   }' 
+

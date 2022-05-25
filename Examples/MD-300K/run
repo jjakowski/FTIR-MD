@@ -1,0 +1,19 @@
+
+   dt=0.5
+   cat   autocorr-all.dat | grep -v "#" | awk  -v dt=$dt  '{au2fs=0.02418884326505; time=NR*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $7 )}'   | tail -n +1  >  du.dat
+
+
+ octave   ./octave-fft1d.m    du.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-du.dat 
+
+
+# rotate 
+tail -n+2 w-du.dat   |  ./rotate_fft.py   >  w2-du.dat   
+
+
+
+# plot now 
+
+
+gnuplot ./gnuscript-freqs
+
+

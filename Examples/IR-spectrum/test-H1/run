@@ -1,0 +1,29 @@
+
+
+ dt=0.5 
+  cat  octave-autocorr.out   | sed -n "/ACF/,$ p"  | grep -v "#" | awk  -v dt=$dt  '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}'   | tail -n +1  >  acf-x.dat
+  cat  octave-autocorr.out   | sed -n "/ACF/,$ p"  | grep -v "#" | awk  -v dt=$dt  '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $2 )}'   | tail -n +1  >  acf-y.dat
+  cat  octave-autocorr.out   | sed -n "/ACF/,$ p"  | grep -v "#" | awk  -v dt=$dt  '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $3 )}'   | tail -n +1  >  acf-z.dat
+
+  cat vel-H1.dat   |  grep -v "#" | awk  -v dt=$dt  '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}'   | tail -n +1  >  vx.dat
+  cat vel-H1.dat   |  grep -v "#" | awk  -v dt=$dt  '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $2 )}'   | tail -n +1  >  vy.dat
+  cat vel-H1.dat   |  grep -v "#" | awk  -v dt=$dt  '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $3 )}'   | tail -n +1  >  vz.dat
+
+
+
+#-- now FFT of ACF
+ octave   ./octave-fft1d.m-damp    acf-x.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-acfx2.dat
+ octave   ./octave-fft1d.m-damp    acf-y.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-acfy2.dat
+ octave   ./octave-fft1d.m-damp    acf-z.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-acfz2.dat
+
+ octave   ./octave-fft1d.m-damp    vx.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-vx2.dat
+ octave   ./octave-fft1d.m-damp    vy.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-vy2.dat
+ octave   ./octave-fft1d.m-damp    vz.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-vz2.dat
+
+ tail -n+2 w-vx2.dat   |  ./rotate_fft.py   >  w2-vx2.dat
+ tail -n+2 w-vy2.dat   |  ./rotate_fft.py   >  w2-vy2.dat
+ tail -n+2 w-vz2.dat   |  ./rotate_fft.py   >  w2-vz2.dat
+
+
+
+gnuplot gnuscript-freqs

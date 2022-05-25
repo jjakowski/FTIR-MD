@@ -1,0 +1,53 @@
+
+#---
+    sh do-dipole movie.xyz  > movie-dipole.xyz
+   
+#b2A=0.529177249; A2b=1/b2A; au2fs=0.0241888432650500; dt=0.1/au2fs; sc=1e-3*A2b*au2fs ;
+
+# extract all  velcoties 
+    cat   ./movie.xyz         |  awk '{b2A=0.529177249; A2b=1/b2A; au2fs=0.0241888432650500; sc=1e-3*A2b*au2fs; if (NF==8) printf("%18.10e %18.10e %18.10e \n",$6*sc,$7*sc,$8*sc)}' > tmp-vel 
+    cat   ./movie-dipole.xyz  |  grep -v "MD" |   awk '{ printf(" %18.10e  %18.10e  %18.10e \n",$2,$3,$4)}'    > tmp-dipole 
+
+
+#-- now   calcualte  ACF
+    Nat=6   # methane (CH4)   # Make sure to set the right number of atoms in "octave-autocorr.inp"
+
+    #dt=0.5 
+    #cp  tmp-dt-0.5fs tmp 
+    #octave  <  octave-autocorr.inp >  octave-autocorr-dt-0.5fs.out
+    #cat octave-autocorr-dt-0.5fs.out | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}' | tail -n +1 > acf-0.5fs.dat
+
+
+
+    dt=0.1 
+    cp  tmp-vel tmp 
+    octave  <  octave-autocorr.inp >  octave-autocorr-velocity.out 
+    cat octave-autocorr-velocity.out | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}' | tail -n +1 > acf-velocity.dat 
+
+    dt=0.1 
+    cp  tmp-dipole  tmp 
+    octave  <  octave-autocorr.inp >  octave-autocorr-dipole.out 
+    cat octave-autocorr-dipole.out | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}' | tail -n +1 > acf-dipole.dat 
+
+
+#-- now FFT of ACF
+    octave   ./octave-fft1d.m       acf-velocity.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w-velocity.dat
+    octave   ./octave-fft1d.m-damp  acf-velocity.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w2-velocity.dat
+
+    octave   ./octave-fft1d.m       acf-dipole.dat    |tail -n+1 |sed -n "/period =/,$ p"  > w-dipole.dat
+    octave   ./octave-fft1d.m-damp  acf-dipole.dat    |tail -n+1 |sed -n "/period =/,$ p"  > w2-dipole.dat
+
+#  
+#tail -n+2 w-xdQ.dat  |  ./rotate_fft.py   >  w2-xdQ.dat 
+
+
+#paste w-acfx2.dat  w-acfy2.dat  w-acfz2.dat   >  w-acf-all2.dat
+
+#  cp  w-dt0.1fs.dat  w.dat
+#  cp w2-dt0.1fs.dat w2.dat
+
+ gnuplot gnuscript-freqs
+
+
+# open  out-freqs_cm.pdf
+

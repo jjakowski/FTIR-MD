@@ -1,0 +1,16 @@
+
+#-- now FFT of ACF
+    octave   ./octave-fft1d.m       acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w.dat
+    octave   ./octave-fft1d.m-damp  acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w2.dat
+    octave   ./octave-fft1d.m-damp2 acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w3.dat
+
+#  
+#tail -n+2 w-xdQ.dat  |  ./rotate_fft.py   >  w2-xdQ.dat 
+
+
+#paste w-acfx2.dat  w-acfy2.dat  w-acfz2.dat   >  w-acf-all2.dat
+
+
+gnuplot gnuscript-freqs2
+
+open  out-freqs2_cm.pdf 

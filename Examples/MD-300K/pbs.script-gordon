@@ -1,0 +1,47 @@
+#!/bin/bash
+#PBS -q normal
+#PBS -l nodes=1:ppn=16:native
+#PBS -l walltime=2:00:00
+#PBS -N  md-ch3oh
+#PBS -oe pcbm.out 
+#PBS -A TG-DMR110037
+#PBS -V
+# Start of user commands - comments start with a hash sign (#)
+cd $PBS_O_WORKDIR
+
+
+
+#------------
+#export  LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:~/Development/Magma/magma-1.6.2/install/lib
+#module load cuda
+#export  OMP_NUM_THREADS=24
+export  OMP_NUM_THREADS=16
+
+#nthreads=96 
+#nthreads=1536
+#nthreads=1728     #72nodes
+#nthreads=96       # 4 nodes 
+#nthreads=384       #16 nodes
+nthreads=16
+
+file=tddft
+
+ulimit -a
+ulimit  -c unlimited
+ulimit  -s unlimited
+#ulimit  -m unlimited
+
+
+module load nwchem
+export NWCHEM_BASIS_LIBRARY=/opt/nwchem/data/libraries/
+export NWCHEM_NWPW_LIBRARY=/opt/nwchem/data/libraryps/
+export  ARMCI_DEFAULT_SHMMAX=4096
+#exec=/opt/nwchem/bin/nwchem
+#exec=/home/jjakowsk/Development/NWchem/nwchem-6.6-dev-comet/bin/LINUX64/nwchem-large
+#exec=/home/jjakowsk/Development/NWchem/nwchem-6.6-dev-gordon/bin/LINUX64/nwchem
+exec=/home/jjakowsk/Development/DFTB+/gordon/dftb+_1.2.2_src_cpu/prg_dftb/_obj_x86_64-comet-linux-ifort/dftb+   
+
+#  ibrun -np ${nthreads} ${exec} ${file}.nw >  ${file}.out
+
+
+${exec}   >& dftb.out
