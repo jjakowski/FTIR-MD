@@ -1,0 +1,64 @@
+#
+#
+#
+
+#
+#  1) Extract velocites(t)*charge(t)   for selected atoms [1:6]  from DFTB+'s   "movie.xyz" file
+#      and  just velocities
+#
+   
+     iat0=1        #select range of atoms for ACF from whole range
+     iat1=6      
+      #bash     do-movie2velsq 1  6    >   vels.dat        #  extract velociites,  3rd  argument can be ignored
+       bash     do-movie2velsq 1  6 1  >   vels_q.dat      #  velocites* Mulliken fractional charges (qIon - Nelectrons) 
+      #bash     do-movie2velsq 1  6 2  >   vels_qn.dat     #  use Ionic charges (qN=Znuclei-Ncore_electrons,  ie. qH=1, qC=4, qN=5, qCl=7  etc.)
+      #bash     do-movie2velsq 1  6 3  >   vels_zn.dat     #  use Nuclear charges (atomic number) instead, that is zH=1,zC=6,zN=9 etc...)
+
+
+      myfile=vels_q.dat 
+#
+#   extract  time dependent variations of  dipoles   from velocites
+#          [ dux/dt , duy/dt, duz/dt]    where   du/dt  = q(t)* [dx/dt, dy/dt, dz/dt] = q(t)*[vx,vy,vz]
+#
+   Natoms=6
+   cat ${myfile}  | awk '{if (NF==3) printf("%s\n",$0)}'  | \
+   awk -v Nat=${Natoms}  '{if (NR%Nat ==1) {ux=0;uy=0;uz=0} ; 
+                                      ux+=$1; uy+=$2; uz+=$3; 
+                          if (NR%Nat == 0)  printf(" %+16.10f   %+16.10f %+16.10f \n", ux,uy,uz)}'  > dipole.dat
+
+#
+#   now get autocorrelation function
+#
+   dt=1.0    # fs
+   Nrows=1 
+   #octave --no-gui-libs  octave-autocorr.inp  ${myfile}    ${Natoms}  > octave-acf.dat-old   
+   #--- get  FTIR from  individual atoms 
+   octave --no-gui-libs  octave-autocorr2.inp ${myfile}    ${Natoms}  > octave-acf.dat      # same results as in "octave-acf.dat-old" except for "1/Natoms" scaling  factor in OLD
+   cat octave-acf.dat | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}' | tail -n +1 > acf.dat
+   #---  get FTIR from dipole-dipole
+   octave --no-gui-libs  octave-autocorr2.inp  dipole.dat   ${Nrows}    > octave-dipole-acf.dat 
+   cat octave-dipole-acf.dat | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}' | tail -n +1 > dipole-acf.dat
+
+#
+#   now do FFT of ACF
+#
+
+ 
+    octave   ./octave-fft1d-jj.m       acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w.dat
+    octave   ./octave-fft1d-jj.m-damp  acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w2.dat
+   
+    octave   ./octave-fft1d-jj.m       dipole-acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > dipole-w.dat
+    octave   ./octave-fft1d-jj.m-damp  dipole-acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > dipole-w2.dat
+
+
+
+#
+#  and plot it
+#
+
+   gnuplot gnuscript-freqs
+   gnuplot gnuscript-dipole-freqs
+
+
+
+

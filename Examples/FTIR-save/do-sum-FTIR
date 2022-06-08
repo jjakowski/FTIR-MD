@@ -1,0 +1,65 @@
+
+#-rw-r--r-- 1 j2c users  4240023 May 27 18:39 w.dat
+#-rw-r--r-- 1 j2c users  4240023 May 27 18:39 w2.dat
+#-rw-r--r-- 1 j2c users  4240023 May 27 18:39 dipole-w.dat
+#-rw-r--r-- 1 j2c users  4240023 May 27 18:39 dipole-w2.dat
+
+
+
+#---------------
+# get the  sum   "w.dat"
+rm  sum-tmp; touch sum-tmp
+for  run in 1  2  3 4 5 6 7 8 9 10 
+do
+   myfile=w.dat  
+   mydir=../MD-nve-500K_run-${run}/FTIR
+   tail -n+2  ${mydir}/${myfile}   > tmp
+   paste sum-tmp  tmp     |  \
+        awk '{w=$1; re=$2+$6; im=$3+$7; abs=$4+$8; printf("  %12.4e  %14.8e  %+14.8e  %+14.8e \n", w,re,im, abs)}' > tmp2 
+   mv tmp2 sum-tmp
+done
+mv sum-tmp sum-${myfile}
+
+#---------------
+# get the  sum   "w2.dat"
+rm  sum-tmp; touch sum-tmp
+for  run in 1  2  3 4 5 6 7 8 9 10 
+do
+   myfile=w2.dat  
+   mydir=../MD-nve-500K_run-${run}/FTIR
+   tail -n+2  ${mydir}/${myfile}   > tmp
+   paste sum-tmp  tmp     |  \
+        awk '{w=$1; re=$2+$6; im=$3+$7; abs=$4+$8; printf("  %12.4e  %14.8e  %+14.8e  %+14.8e \n", w,re,im, abs)}' > tmp2 
+   mv tmp2 sum-tmp
+done
+mv sum-tmp sum-${myfile}
+
+
+#---------------
+# get the  sum   "dipole-w.dat"
+rm  sum-tmp; touch sum-tmp
+for  run in 1  2  3 4 5 6 7 8 9 10 
+do
+   myfile=dipole-w.dat  
+   mydir=../MD-nve-500K_run-${run}/FTIR
+   tail -n+2  ${mydir}/${myfile}   > tmp
+   paste sum-tmp  tmp     |  \
+        awk '{w=$1; re=$2+$6; im=$3+$7; abs=$4+$8; printf("  %12.4e  %14.8e  %+14.8e  %+14.8e \n", w,re,im, abs)}' > tmp2 
+   mv tmp2 sum-tmp
+done
+mv sum-tmp sum-${myfile}
+
+#---------------
+# get the  sum   "dipole-w2.dat"
+rm  sum-tmp; touch sum-tmp
+for  run in 1  2  3 4 5 6 7 8 9 10 
+do
+   myfile=dipole-w2.dat  
+   mydir=../MD-nve-500K_run-${run}/FTIR
+   tail -n+2  ${mydir}/${myfile}   > tmp
+   paste sum-tmp  tmp     |  \
+        awk '{w=$1; re=$2+$6; im=$3+$7; abs=$4+$8; printf("  %12.4e  %14.8e  %+14.8e  %+14.8e \n", w,re,im, abs)}' > tmp2 
+   mv tmp2 sum-tmp
+done
+mv sum-tmp sum-${myfile}
+

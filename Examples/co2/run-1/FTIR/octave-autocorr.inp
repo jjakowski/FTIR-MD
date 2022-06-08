@@ -1,0 +1,81 @@
+ 
+
+
+#---- read in filename ("myfile") and number of atoms (Nat) from argv()
+#  then load  the  data file
+#-- 
+# example of using argv argc:
+#   
+#     octave --no-gui-libs   octave-autocorr.inp  12  tmp.dat 1 2 
+#
+#args = 
+#{
+#  [1,1] = 12
+#  [2,1] = tmp.dat
+#  [3,1] = 1
+#  [4,1] = 2
+#}
+# Nargs =  4
+# Nat =  12
+# myfile = tmp.dat
+#-----------------------------------------------------
+
+args   =    argv() 
+Nargs  =    size(args,1)  
+
+myfile =         args{1}
+Natoms = str2num(args{2})
+V      =    load(myfile) ;
+#---------------------------
+#
+#
+# Notes:  we assume  that  the structureof 'myfile' is similar to *cube file. 
+# That is  for each row there is several entries (Ncolumns)  and   for  each time step
+#  we want to use several atoms (Natoms)  each in different rows for corelations (each row correspond to different atoms)
+# So if we have Ntimes_steps    and for each time step we have Nrows  each consisting of Ncols
+# then before getting autocorrelation 
+#  we want to reshape out V file in  a matrix consisitng Ntime_steps rows  and each row consisintg.
+#   (Ntime_steps) x (Natoms*Ncolumns)  
+
+
+  N1=size(V,1) ; N2=size(V,2) ;
+  Nt=N1/Natoms ;
+  Nxyz= N1*N2/Nt
+
+  #   each row represents time, each column  is different xyz
+  VV= transpose( reshape(transpose(V), Nxyz,Nt) )   ;
+
+#
+# done with reshaping  of V. 
+#  I am now ready to work  and get autocorrelation
+#
+
+Vacf =zeros(Nt,Nxyz)  ;
+Vacf2=zeros(Nt,Nxyz)  ;
+
+
+printf("# ACF : \n")
+
+for ii=0:Nt-1     #shift
+
+   #---- ACF  with sliding   time 
+   # This is equivalent to biased cross-correlations xcorr(VV,VV,'biased')
+   Vacf(1+ii,:)=   sum( VV(1:Nt-ii,:) .* VV(1+ii:Nt,:),1)  / Nt   ;         # averaged over time   (1/Nt) 
+   acf         =  sum(Vacf(1+ii,:),2 )/Natoms   ;
+
+   #---- this probably better:
+   #   This is equivalent to unbiased cross-correlation xcorr(VV,VV,'unbiased')
+   #Npts = Nt -ii ;                                                          #  number of time points used for time average
+   #Vacf2(1+ii,:)=   sum( VV(1:Nt-ii,:) .* VV(1+ii:Nt,:),1)  / Npts   ;      # averaged over time   (1/(Nt-ii)) 
+   #acf2         =   sum(Vacf2(1+ii,:),2 )/Natoms    ;
+
+   #-- now print it:
+   printf("   %18.10e \n", acf  )                  ;                     
+   #printf("   %18.10e   %18.10e  \n", acf , acf2  )       ;
+endfor
+
+
+
+   #printf("  %18.10e   \n", sum(Vacf(1+ii,:),2 )/Natoms  ,  sum(Vacf2(1+ii,:),2 )/Nat  )           ;   # averaged over atoms  (1/Nat)
+
+

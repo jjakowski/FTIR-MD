@@ -1,0 +1,39 @@
+
+# calculate  vel*Q  for selected range of atoms [iat0:iat1]  from DFTB+ "movie.xyz" file
+iat0=$1          # beginnig  atom id in the range 
+iat1=$2          # ending    atom id in the range
+imode=$3   # This is a switch  that controls whether to extract velocities  of velocties*charge 
+                 #    for  vel-vel autocorrelation  or  ddipole/dt-ddipole/dt autocorrelation
+                 #  0  (or undefined)   : No charges, just extract velocites 
+                 #                        (same as using Q=1  for all atoms in range [iat0:iat1])
+                 #  1                   : partial charge* velocity  ( that is  Q= qNucl -Nelectrons) 
+                 #                                Notice that charge = Nuclear charge -Nelectrons      
+                 #  2                   :   ionic valence charges   ( that is  qH=1; qC=4; qO=6 ... )
+                 #  3                   :   full nuclear  charges   ( that is  zH=1; zC=6; zO=8 ... )
+
+#echo  if_vel_only:  $if_vel_only
+
+cat  ../movie.xyz   |   \
+   awk -v iat0=${iat0} -v iat1=${iat1} -v Q_mode=$imode  \
+              'BEGIN {qH=1;qC=4;qN=5;qO=6;qCl=7; 
+                      zH=1;zC=6;zN=7;zO=8;zCl=9}; 
+              {if (NR==1) Nat=  $1 ;
+               #if (NF==1) printf("%s \n",$0);
+               if (NF==1) printf(" \n");
+               iat=(NR-2)%(Nat+2) ;  #printf("\n Nat = %d ind =%d ", Nat, iat )  ;
+               if ((iat0 <= iat) &&  (iat <= iat1)) {
+                     Nel =$5; Vx=$6; Vy=$7; Vz=$8;
+                           if ($1=="H")  { Qn=qH ; Zn=zH } ;
+                           if ($1=="C")  { Qn=qC ; Zn=zC } ; 
+                           if ($1=="N")  { Qn=qN ; Zn=zN } ;
+                           if ($1=="O")  { Qn=qO ; Zn=zO } ;
+                           if ($1=="Cl") { Qn=qCl; Zn=zCl} ;
+                                          Q=1      ;  # No charges at all
+                           if (Q_mode==1) Q=Qn-Nel ; 
+                           if (Q_mode==2) Q=Qn     ;  # Valence charges of ionic center (ie. [1,4,5,6] for[H,C,N,Cl]  etc)
+                           if (Q_mode==3) Q=Zn     ;  # Nuclear core charges (ie. [1,6,7,8] for [H,C,N,Cl] etc) 
+ printf(" %+16.10e  %+16.10e  %+16.10e \n",Vx*Q,Vy*Q,Vz*Q )}}'  
+
+
+#printf(" %3s  %+16.10e  %+16.10e  %+16.10e : %d %d %d \n",$1,Vx*Q,Vy*Q,Vz*Q, iat0,iat1,vel_only)}}'
+

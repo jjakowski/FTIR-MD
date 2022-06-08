@@ -1,0 +1,74 @@
+ 
+
+
+#---- read in filename ("myfile") and number of atoms (Nat) from argv()
+#  then load  the  data file
+#-- 
+# example of using argv argc:
+#   
+#     octave --no-gui-libs   octave-autocorr.inp  12  tmp.dat 1 2 
+#
+#args = 
+#{
+#  [1,1] = 12
+#  [2,1] = tmp.dat
+#  [3,1] = 1
+#  [4,1] = 2
+#}
+# Nargs =  4
+# Nat =  12
+# myfile = tmp.dat
+#-----------------------------------------------------
+
+args   =    argv() 
+Nargs  =    size(args,1)  
+
+myfile =         args{1}
+Natoms = str2num(args{2})
+V      =    load(myfile) ;
+#---------------------------
+#
+#  I am now ready to work
+#
+
+
+  N1=size(V,1) ; N2=size(V,2) ;
+  Nt=N1/Natoms ;
+  Nxyz= N1*N2/Nt
+
+  #   each row represents time, each column  is different xyz
+  VV= transpose( reshape(transpose(V), Nxyz,Nt) )   ;
+
+
+#Vacf =zeros(Nt,Nxyz)  ;
+
+
+printf("# ACF : \n")
+
+#########################################################3
+#
+#   Use   xcorr   from "signal package" 
+#
+# pkg load signal    # enable xcorr
+#for icol=1:Nxyz 
+#   Vacf(:,icol) = xcorr(VV(:,icol),'biased')/Natoms;   #  biased means divided  by  the number  of time steps
+#endfor
+
+#-------
+#  use a   conv() instead of xcorr()   
+#   Same  results, but without a need to insyalling  external packages "signal" and  "control"
+#
+for icol=1:Nxyz 
+   Vacf(:,icol) = conv(VV(:,icol),flip(VV(:,icol))) / (Natoms*Nt)    ;
+endfor
+
+
+for i=Nt:2*Nt-1
+   printf(" %18.10e \n", sum(Vacf(i,:),2))   #   sum over all columns = ACF(x) +ACF(y) + ACF(z)
+endfor
+
+
+
+   #printf("  %18.10e   \n", sum(Vacf(1+ii,:),2 )/Natoms  ,  sum(Vacf2(1+ii,:),2 )/Nat  )           ;   # averaged over atoms  (1/Nat)
+
+

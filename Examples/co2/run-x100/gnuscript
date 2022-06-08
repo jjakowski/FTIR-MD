@@ -1,0 +1,20 @@
+
+
+set terminal postscript color enhanced eps "Arial,20"
+set output "out_cm.eps"
+
+set xr [500:600] ; 
+#unset key 
+
+set xlabel 'wavenumbers, (cm^{-1})'
+
+cm2Eh =    4.5563e-06
+#  "sum-dipole-w.dat"   :  IR spectrum from dipole-autocorrelation
+#  "sum-w.dat"          : power spectrum from veolcity autocorrelation
+#  "sum-w-k8.dat"       :  Lorentzian broadened power spectrum, with k=8 (lorentzian spread)
+#
+plot "sum-dipole-w.dat" u  ($1/cm2Eh):4       t "IR  (raw)"          w lines lw 2,  \
+     "sum-vels-w.dat"        u  ($1/cm2Eh):(5*$4)  t "Power (raw)"        w lines lw 2,   \
+     "sum-vels-w-k8.dat"     u  ($1/cm2Eh):(10*$4) t "Power (broadened)"  w lines lw 3
+
+!epstopdf  out_cm.eps  

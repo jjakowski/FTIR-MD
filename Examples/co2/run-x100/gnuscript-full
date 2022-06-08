@@ -1,0 +1,30 @@
+
+
+set terminal postscript color enhanced eps "Arial,10"
+set output "out-full_cm.eps"
+set size  1,0.5
+
+cm2Eh =    4.5563e-06
+set xr [500:2500] ; 
+#unset key 
+set key left top
+
+set label ' \~550 cm^{-1}: bending '           at 1500,21000
+set label '\~1300 cm^{-1}: symmetric stretch'  at 1500,22000
+set label '\~2300 cm^{-1}: asymmetric stretch' at 1500,23000
+
+set xlabel 'wavenumbers, (cm^{-1})'
+
+#  "sum-dipole-w.dat"   :  IR spectrum from dipole-autocorrelation
+#  "sum-w.dat"          : power spectrum from veolcity autocorrelation
+#  "sum-w-k8.dat"       :  Lorentzian broadened power spectrum, with k=8 (lorentzian spread)
+#
+plot "sum-vels-w.dat"        u  ($1/cm2Eh):(2.5*$4*$1)  t "Power (raw)"        w lines lc 2 lw 2,   \
+     "sum-dipole-w.dat"      u  ($1/cm2Eh):(1.0*$4*$1)  t "IR  (raw)"          w lines lc 1 lw 2,  \
+     "sum-vels-w-k8.dat"     u  ($1/cm2Eh):(15*$4*$1)   t "Power (broadened)"  w lines lw 2
+
+#set xr [500:2600] ; 
+#plot "sum-dipole-w2.dat" u  ($1/cm2Eh):($4*$1)  w lines lc 1, \
+#     "sum-vels-w2.dat"   u ($1/cm2Eh):(2.4*$4*$1)  w lines lc 2
+
+!epstopdf  out-full_cm.eps  

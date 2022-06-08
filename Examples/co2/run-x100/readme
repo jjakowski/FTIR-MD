@@ -1,0 +1,43 @@
+
+#
+#  Here are the IR/Raman  results for CO2  in gas phase obtained from 100 MD simulations with NVE and initial T=300K
+#
+#   1) First I run 100 MD on expanse, for each MD run  the IR/power  spectra  were  generated 
+#       The folder ../run-1   shows MD results from one such  run 
+#
+#   2) All the spectra from  summed using the script "do-sum-FTIR".  
+#        Only the combined  results (of all IR/power spectre added up) are shown here
+#
+# -rw-r--r-- 1 j2c users 5213934 Jun  8 14:44 sum-dipole-w2.dat   # FTIR from dipole-autocorrelation 
+# -rw-r--r-- 1 j2c users 5213934 Jun  8 14:44 sum-dipole-w.dat    # Same as above but broaden before FFT
+# -rw-r--r-- 1 j2c users 5213934 Jun  8 14:44 sum-vels-w2.dat     # Power spectrum from velocity autocorrelation 
+# -rw-r--r-- 1 j2c users 5213934 Jun  8 14:44 sum-vels-w.dat      # Same as above but broaden before FFT
+# -rw-r--r-- 1 j2c users 5213934 Jun  8 14:45 sum-w2.dat          # Spectrum from velocities of individual atoms (no cross correlationi betnween)
+# -rw-r--r-- 1 j2c users 5213934 Jun  8 14:45 sum-w.dat           # Same as above  but broaded before  FFT
+
+
+
+#
+#  3) The lorentzian broadenig is applied to "raw" (unbroadened) files  toadjust the broadening. 
+#    The *w2.dat" file are too  much washed up, which hides some spectral feautures.
+#   Using  narrower Lorenztian broadening (k=8) nicely exposes the  "wings" of the  CO2 bending  (peak near 550cm-1).
+#    in agreement with experimental resutls from NIST.
+#   The  "wings"  on both sides of bending peak are due to anharmonicity.
+#
+
+octave --no-gui-libs  octave-lorentzian.inp  sum-vels-w.dat    8  |  sed -n "/#  Lorentzian/,$ p"  >    sum-vels-w-k8.dat   
+octave --no-gui-libs  octave-lorentzian.inp  sum-dipole-w.dat  8  |  sed -n "/#  Lorentzian/,$ p"  >  sum-dipole-w-k8.dat  
+
+
+#
+#   4) plot the results and save in eps & PDF  files 
+#
+
+gnuplot   gnuscript 
+gnuplot   gnuscript-full
+
+#
+#  5) Comparison with experimental data are in
+#      "../co2-benchmark-100runs.pdf"
+#      "../co2-benchmark-100runs.pptx"
+#
