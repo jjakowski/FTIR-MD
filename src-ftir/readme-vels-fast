@@ -56,8 +56,8 @@
    
      iat0=1        #select range of atoms for ACF from whole range
      iat1=3     
-#       bash     do-movie2velsq ${iat0} ${iat1}       |head -n 116000 >   vels.dat        #  extract velociites,  3rd  argument can be ignored
-#       bash     do-movie2velsq ${iat0} ${iat1}   1   |head -n 116000 >   vels_q.dat      #  velocites* Mulliken fractional charges (qIon - Nelectrons) 
+       bash     do-movie2velsq ${iat0} ${iat1}       |head -n 116000 >   vels.dat        #  extract velociites,  3rd  argument can be ignored
+       bash     do-movie2velsq ${iat0} ${iat1}   1   |head -n 116000 >   vels_q.dat      #  velocites* Mulliken fractional charges (qIon - Nelectrons) 
       #bash     do-movie2velsq ${iat0} ${iat1}   2   |head -n 116000 >   vels_qn.dat     #  use Ionic charges (qN=Znuclei-Ncore_electrons,  ie. qH=1, qC=4, qN=5, qCl=7  etc.)
       #bash     do-movie2velsq ${iat0} ${iat1}   3   |head -n 116000 >   vels_zn.dat     #  use Nuclear charges (atomic number) instead, that is zH=1,zC=6,zN=9 etc...)
 
