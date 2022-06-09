@@ -1,0 +1,120 @@
+#
+# The workflow for FTIR involves following scripts:
+#  total 15492
+#-rw-r--r-- 1 j2c users     539 Jun  7 12:11 gnuscript-freqs
+#-rw-r--r-- 1 j2c users     567 Jun  7 12:11 gnuscript-dipole-freqs
+#-rw-r--r-- 1 j2c users    2342 Jun  7 12:11 do-movie2velsq
+#-rw-r--r-- 1 j2c users    3895 Jun  7 12:11 octave-fft1d-jj.m-damp
+#-rw-r--r-- 1 j2c users    3742 Jun  7 12:11 octave-fft1d-jj.m
+#-rw-r--r-- 1 j2c users    1282 Jun  7 16:57 octave-autocorr2.inp
+#-rw-r--r-- 1 j2c users    2454 Jun  7 17:27 octave-autocorr.inp
+#  
+#  Output files:
+#      vels-w.dat        <---  frequencies from  velocit-autocorrelation  to generate power spectrum (FTIR+  Raman)
+#      vels-w2.dat       <---   same as above but with lorentizan broadening 
+#      dipole-w.dat      <---  frequencies from (d/dt dipole)-autocorrelation function   to geenrate IR spectrum
+#      dipole-w2.dat     <---   same as above but with lorentizan broadening
+#
+#  Workflow involves these steps :
+#
+#
+#   1)   Extract data for  IR andi/or for  power spectrum
+#   1.a)    extract velocities   ("vels.dat") for evaluation  of  power spectrum  (includes all vibrational modes, incluing IR inactive) 
+#   1.b)    extract velocities* charges (dx/dt) for  the IR spectra   ("vels_q.dat")
+#
+#        do-movie2velsq            <--- script: input 'movie.xyz'
+#            
+#   2)   Calculata time dependent  dipole moment  u(t) or its derivative; 
+#         du/dt =   d/dt [ \sum_i  q_i(t)*r_i(t)      ] 
+#               =  sum_i [   q_i(t)*dr_i(t)/dt  +  dq_i(t)/dt *r_i(t)  ] 
+#               =  sum_i [   q_i(t)*dr_i(t)/dt  +    (neglected term)  ]
+#               =  sum_i [   q_i(t)*v_i(t)/dt         ]
+#
+#   3)  Calculate  autocorrelation function
+#         octave-autocorr.inp     <--- uses written from scratch routine
+#         octave-autocorr2.inp    <--- uses octave's build-in routine xcorr (VV,VV,'biased') which requires 'pkg load signal'
+#                                      Alternatively, one can use conv(VV,flip(VV))  which is a standard function (see google.sites)
+#  
+#   4)  RUn FFT on the  autocorrelation function:
+#         octave-fft1d-jj.m      <--- contains in houe  build routine in case  FFT is not running (for example, missing FFTW libs)
+#                                <--- Vertical reflection  of input signal is added to improve stability of FFT  and remove  noise 
+#                                    ##### ADD REFLECTION
+#                                   f= vertcat(f,flip(f(2:size(f)))) 
+#         octave-fft1d-jj.m-damp <--- same as above but lorentzian broadening added through  (exp(-x/tau) damping  of in put signal
+#
+#   5) plot result using  gnuplot  in wavenumebr  [ cm-1 ] 
+#          gnu
+#
+#-----
+
+
+##############################
+#
+#  1) Extract velocites(t)*charge(t)   for selected atoms [1:6]  from DFTB+'s   "movie.xyz" file
+#      and  just velocities
+#
+   
+     iat0=1        #select range of atoms for ACF from whole range
+     iat1=3     
+       bash     do-movie2velsq ${iat0} ${iat1}       |head -n 116000 >   vels.dat        #  extract velociites,  3rd  argument can be ignored
+       bash     do-movie2velsq ${iat0} ${iat1}   1   |head -n 116000 >   vels_q.dat      #  velocites* Mulliken fractional charges (qIon - Nelectrons) 
+      #bash     do-movie2velsq ${iat0} ${iat1}   2   |head -n 116000 >   vels_qn.dat     #  use Ionic charges (qN=Znuclei-Ncore_electrons,  ie. qH=1, qC=4, qN=5, qCl=7  etc.)
+      #bash     do-movie2velsq ${iat0} ${iat1}   3   |head -n 116000 >   vels_zn.dat     #  use Nuclear charges (atomic number) instead, that is zH=1,zC=6,zN=9 etc...)
+
+
+      myfile=vels_q.dat 
+#
+# 2)  extract  time dependent variations of  dipoles   from velocites
+#          [ dux/dt , duy/dt, duz/dt]    where   du/dt  = q(t)* [dx/dt, dy/dt, dz/dt] = q(t)*[vx,vy,vz]
+#
+   Natoms=3
+   cat ${myfile}  | awk '{if (NF==3) printf("%s\n",$0)}'  | \
+   awk -v Nat=${Natoms}  '{if (NR%Nat ==1) {ux=0;uy=0;uz=0} ; 
+                                      ux+=$1; uy+=$2; uz+=$3; 
+                          if (NR%Nat == 0)  printf(" %+16.10f   %+16.10f %+16.10f \n", ux,uy,uz)}'  |head -n 29000  > dipole.dat
+
+#
+# 3) now get autocorrelation function
+#
+   dt=1.0    # fs
+   Nrows=1 
+   #octave --no-gui-libs  octave-autocorr.inp  ${myfile}    ${Natoms}  > octave-acf.dat-old   
+   #--- get  FTIR/raman  from  velocity autocorrelation of individual atoms 
+   #octave --no-gui-libs  octave-autocorr.inp  vels.dat    ${Natoms}  > octave-vels-acf.dat    
+   octave --no-gui-libs  octave-autocorr2.inp  vels.dat    ${Natoms}  > octave-vels-acf.dat    
+   cat octave-vels-acf.dat | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}'  | tail -n +1  > vels-acf.dat
+   #--- get  FTIR from  individual atoms 
+   #octave --no-gui-libs  octave-autocorr.inp ${myfile}    ${Natoms}  > octave-acf.dat    
+   octave --no-gui-libs  octave-autocorr2.inp ${myfile}    ${Natoms}  > octave-acf.dat      # same results as in "octave-acf.dat-old" except for "1/Natoms" scaling  factor in OLD
+   cat octave-acf.dat | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}'  | tail -n +1  > acf.dat
+   #---  get FTIR from dipole-dipole
+   #octave --no-gui-libs  octave-autocorr.inp  dipole.dat   ${Nrows}    > octave-dipole-acf.dat 
+   octave --no-gui-libs  octave-autocorr2.inp  dipole.dat   ${Nrows}    > octave-dipole-acf.dat 
+   cat octave-dipole-acf.dat | sed -n "/ACF/,$ p" | grep -v "#" | awk -v dt=$dt '{au2fs=0.02418884326505; time=(NR-1)*dt/au2fs; if(NF!=0) printf(" %20.10f   %s  \n",time, $1 )}' | tail -n +1  > dipole-acf.dat
+
+#
+#   now do FFT of ACF
+#
+
+ 
+    octave --no-gui-libs   ./octave-fft1d-jj.m       acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w.dat
+    octave --no-gui-libs   ./octave-fft1d-jj.m-damp  acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > w2.dat
+   
+    octave --no-gui-libs   ./octave-fft1d-jj.m       vels-acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > vels-w.dat
+    octave --no-gui-libs   ./octave-fft1d-jj.m-damp  vels-acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > vels-w2.dat
+   
+    octave --no-gui-libs   ./octave-fft1d-jj.m       dipole-acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > dipole-w.dat
+    octave --no-gui-libs   ./octave-fft1d-jj.m-damp  dipole-acf.dat  |tail -n+1 |sed -n "/period =/,$ p"  > dipole-w2.dat
+
+
+
+#
+#  and plot it
+#
+
+   gnuplot gnuscript-freqs
+   gnuplot gnuscript-dipole-freqs
+
+
+
+

@@ -1,0 +1,11 @@
+This folder   contains an example of methanol  spectrum obtained from  30ps  MD with  DFTB+ using NVT at T=333.15K.
+
+
+   out-dipole-freqs_cm.pdf    # IR  spectrum dipole autocorrelation function 
+   out-freqs_cm.pdf           # power spectrum from velocity autocorrelation function
+
+Notice that this is obtained from a single MD run of a single molecule. Therefore the  intensities may not be representative.
+It is better to run an ensemble of trajectories. Also the effect of NVT si not really clear and it may affect intensities and frequencies.
+
+
+

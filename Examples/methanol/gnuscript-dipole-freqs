@@ -1,0 +1,38 @@
+#
+ set terminal postscript color enhanced eps "Arial" 20
+ set  output "out-dipole-freqs_cm.eps"
+
+#set size square 
+
+
+eV2nm =  1239.84193
+Eh2eV =  27.2114
+cm2Eh =   4.556335e-06
+
+
+#set xr [200:800]
+
+#set xr [*:10000]
+#set xr [200:800]
+#set xr [100:800]
+#set xr [*:*]
+
+#set yr [0:*]
+
+set xtics 500
+set grid
+
+set xr [500:4500]
+
+plot "dipole-w.dat"   u ($1/cm2Eh):($2*1/20)     not w lines  lt 2 lw 2, \
+     "dipole-w2.dat"  u ($1/cm2Eh):($2*1/1)      not w lines  lt 1 lw 2
+
+!epstopdf  out-dipole-freqs_cm.eps 
+
+ 
+
+exit
+
+#############################################
+
+
