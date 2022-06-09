@@ -24,8 +24,8 @@ set grid
 
 set xr [500:4000]
 
-plot "w.dat"   u ($1/cm2Eh):($2*1/20)     not w lines  lt 2 lw 2, \
-     "w2.dat"  u ($1/cm2Eh):($2*1/1)      not w lines  lt 1 lw 2
+plot "vels-w.dat"   u ($1/cm2Eh):($2*1/20)     not w lines  lt 2 lw 2, \
+     "vels-w2.dat"  u ($1/cm2Eh):($2*1/1)      not w lines  lt 1 lw 2
 
 !epstopdf  out-freqs_cm.eps 
 
