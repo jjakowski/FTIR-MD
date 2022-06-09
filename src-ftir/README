@@ -1,0 +1,34 @@
+This folder contains a collection of scripts used to generate  IR/ Power (raman) spectra from MD.
+
+# Here are example workflows   used   to  generate spectra for co2
+ readme-vels
+ readme-vels-fast
+ readme-vels-fastest
+
+ do-movie2velsq         : Use this to  extract info  from DFTB+ 's  "movie.xyz"  for  IR.
+                          Input include  atom range for analysis and type of data for autocorrelation
+
+ octave-autocorr.inp    : This script  calculate autocorreclation function (very slow, in-house autocorrelation code)
+ octave-autocorr2.inp   : This is faster. It uses conv() to calculate autocorrelation.
+ octave-autocorr3.inp   : This is very fast. It uses xcorr() to calculate autocorrelation  from signal package.
+                          Using xcorr()  requires installing  "signal" and "control" package 
+
+ octave-fft1d-jj.m      : Basic script for IR spectra, it uses build in FFT routine, 
+                          but also contains an  in-house written FFT routine jfft() in case  missing FFT libraries
+ octave-fft1d-jj.m-damp : Same as above, only differece is that  exponential damping is turned on that activates
+                          lorentzian broadening
+
+ octave-lorentzian.inp  : This script can be used to apply lorentzian broadenig after the  FFT spectra are  generated.
+
+ gnuscript-freqs        : Gnuplot  script example  for  FTIR (used for co2)
+ gnuscript-dipole-freqs : Same as above
+
+ do-sum-FTIR            : To get a reasonable FTIR spectra from MD often requires  running an  ensemble of MD runs.
+                          The reason is that a single run may be biased  towards a specific vibrational mode or
+                          even have some modes turned off during MD. This can show up as missing peaks or wrong intensities.
+                         Then, running a  randomized ensemble of  MD trajectories  alleviates that issue. 
+                         Running just  10 MD trajectories significantly improves intensites.  
+                         With running 100 MD one can get ahnarmonic shoulders wings nicely reproduced as shown in CO2 example.
+                         This script is an example  of bash script  that collects spectra from 100 MD runs into a single
+                         file for plotting or analysis.
+
