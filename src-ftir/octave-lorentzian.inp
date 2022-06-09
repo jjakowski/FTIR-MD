@@ -1,0 +1,86 @@
+
+
+#---- read in filename ("myfile") and number of atoms (Nat) from argv()
+#  then load  the  data file
+#-- 
+# example of using argv argc:
+#   
+#     octave --no-gui-libs   octave-autocorr.inp  12  tmp.dat 1 2 
+#
+#args = 
+#{
+#  [1,1] = 12
+#  [2,1] = tmp.dat
+#  [3,1] = 1
+#  [4,1] = 2
+#}
+# Nargs =  4
+# Nat =  12
+# myfile = tmp.dat
+#-----------------------------------------------------
+
+args   =    argv() 
+Nargs  =    size(args,1)  
+
+myfile       =         args{1}
+k_lorentzian = str2num(args{2})
+V            =    load(myfile) ;
+#---------------------------
+
+################################
+#
+# lorentzian (x,x0,k0)  returns Lorentzian  function   1/pi *  k0/((x-x0).**2 +k0**2);  on vector 'x'  \n \n");
+#
+function retval = lorentzian(x,x0,k0)
+       Lrntz   = 1/pi *  k0./((x-x0).**2 +k0**2);
+       retval  = Lrntz ;
+endfunction
+
+
+################################
+#
+#  L_conv(x,k)  returns convolution of input signal with Lorentzian  . Usage :  
+#         x     - input signal (evenly spaced points)           
+#         k     -  defines width of the Lorentzian  spread      
+#
+
+function retval =  L_conv(yy,kk);
+   NN=max(size(yy)) ;   # max takes care on whether we have a a row or column vector
+   Nhalf = floor((NN-1)/2) ;
+   xx=linspace(-Nhalf,Nhalf, 2*Nhalf+1) ;
+   lor=lorentzian(xx,0,kk) ;
+   lor  = lor/sum(lor) ;      #normalized lorentzian (this shpuld be flipped lor(x) -> lor(-x), but luckily we  Lorentzian is symmetric 
+                              #  to flip  we coul use  build-in function flip(),  so  flip(lor). See below
+   yycorr = conv(yy,flip(lor)) ;
+   i0 = Nhalf +1 ;
+   i1 = NN+Nhalf
+   yy2 = yycorr(i0:i1) ;
+  retval =yy2;
+endfunction
+
+################################
+#  I am now ready to work
+
+
+  Nw =size(V,1) ; N2=size(V,2) ;
+
+w     =  V(:,1) ; 
+f_re  =  V(:,2) ;
+f_im  =  V(:,3) ;
+f_abs =  V(:,4) ;
+
+k= k_lorentzian ;
+f2_re  =transpose(L_conv(f_re,k)) ;
+f2_im  =transpose(L_conv(f_im,k)) ;
+f2_abs =transpose(L_conv(f_abs,k)) ;
+
+size_w = size(w)
+size_re  = size(f2_re)
+size_im  = size(f2_im)
+size_abs = size(f2_abs)
+V2=[w,f2_re,f2_im,f2_abs ] ;
+
+printf("#  Lorentzian broadened datafile \"%s\" with k= %d \n", myfile, k_lorentzian) ;
+for i=1:Nw
+  printf("  %14.8e    %18.10e   %18.10e   %18.10e \n", V2(i,1), V2(i,2), V2(i,3), V2(i,4));
+endfor
