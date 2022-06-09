@@ -9,3 +9,48 @@ It is better to run an ensemble of trajectories. Also the effect of NVT si not r
 
 
 
+Input files needed:
+---------------------
+        movie.xyz
+        geom-methanol-optimized.gen : initial structure used for DFTB+ simulations
+        dftb_in.hsd                 : input file for 30ps NVT ensemble (T=333.15K) MD simulations with DFTB+ 
+
+Scripts used   :
+---------------------
+        readme-vels-fastest
+        do-movie2velsq
+        octave-autocorr3.inp
+        octave-fft1d-jj.m-damp
+        octave-fft1d-jj.m
+        gnuscript-freqs
+        gnuscript-dipole-freqs
+
+
+
+temporary/intermediate files:
+-------------------------------
+        vels_q.dat               :  postprocessed DFTB file  contains velocity(t)*charges(t)      
+        dipole.dat               :  dipole moments 
+
+        octave-acf.dat           : raw output from octave with autocorrelation  function (ACF)
+        octave-vels-acf.dat      : raw output from octave with velocity ACF
+        octave-dipole-acf.dat    : raw output from octave with dipole   ACF 
+
+        acf.dat                  :  sum atomic velocities ACF
+        vels-acf.dat             :  velocity ACF
+        dipole-acf.dat           :  dipole ACF
+ 
+        w.dat                    : Frequency spectrum from "acf.dat" in (cm-1)
+        w2.dat                   : Same as above but broadened
+        vels-w.dat               : Power frequency spectrum from velocity ACF in "vels-acf.dat" in (cm-1) 
+        vels-w2.dat              : Same as above but broadened
+        dipole-w.dat             : IR frequency spectrum from dipole ACF "dipole-acf.dat" in (cm-1)
+        dipole-w2.dat            : Same as above but broadened
+
+Final  PDF/EPS outputs:
+-----------------------------
+        out-freqs_cm.eps          :  power spectrum of methanol
+        out-freqs_cm.pdf 
+        out-dipole-freqs_cm.eps   : IR spectrum  methanol
+        out-dipole-freqs_cm.pdf  
+
